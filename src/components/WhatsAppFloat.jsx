@@ -21,8 +21,8 @@ const WhatsAppFloat = () => {
     }, []);
 
     const handleClick = () => {
-        const message = encodeURIComponent("Hello! I'm interested in your products from Aisha's Shop.");
-        window.open(`https://wa.me/233599992748?text=${message}`, '_blank');
+        const message = encodeURIComponent("Hello! I'm interested in your products from minimekiddiestreasures.");
+        window.open(`https://wa.me/233538232507?text=${message}`, '_blank');
     };
 
     return (

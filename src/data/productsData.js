@@ -2,221 +2,174 @@
 // AISHA'S SHOP - PRODUCT DATA
 // ===================================
 
-export const products = [
-    // CLOTHING CATEGORY
-    {
-        id: 1,
-        name: "Floral Summer Dress",
-        category: "clothing",
-        price: 25,
-        description: "Beautiful floral print dress perfect for summer outings",
-        icon: "👗"
-    },
-    {
-        id: 2,
-        name: "Cute Denim Overalls",
-        category: "clothing",
-        price: 32,
-        description: "Comfortable denim overalls for everyday play",
-        icon: "👖"
-    },
-    {
-        id: 3,
-        name: "Princess Party Dress",
-        category: "clothing",
-        price: 45,
-        description: "Elegant dress for special occasions and parties",
-        icon: "👗"
-    },
-    {
-        id: 4,
-        name: "Cotton T-Shirt Set",
-        category: "clothing",
-        price: 18,
-        description: "Set of 3 colorful cotton t-shirts",
-        icon: "👕"
-    },
-    {
-        id: 5,
-        name: "Baby Romper",
-        category: "clothing",
-        price: 22,
-        description: "Soft and comfortable romper for babies",
-        icon: "🍼"
-    },
-    {
-        id: 6,
-        name: "Kids Hoodie",
-        category: "clothing",
-        price: 28,
-        description: "Warm and cozy hoodie for cool weather",
-        icon: "🧥"
-    },
+import pottyGreen from '../assets/products/potty-trainer-green.jpg';
+import pottyGray from '../assets/products/potty-trainer-gray.jpg';
+import pottyPink from '../assets/products/potty-trainer-pink.jpg';
+import pottyBlue from '../assets/products/potty-trainer-blue.jpg';
+import pottyYellowBlue from '../assets/products/potty-trainer-yellow-blue.jpg';
+import sleepBunny1 from '../assets/products/sleepwear-bunny-1.jpg';
+import sleepStrawberryLarge from '../assets/products/sleepwear-strawberry-large.jpg';
+import sleepBunny2 from '../assets/products/sleepwear-bunny-2.jpg';
+import sleepStrawberrySmall from '../assets/products/sleepwear-strawberry-small.jpg';
+import sleepStrawberryAllover from '../assets/products/sleepwear-strawberry-allover.jpg';
 
-    // NIGHTWEAR CATEGORY
+import lunchUnicorn from '../assets/products/lunch-bag-unicorn.jpg';
+import lunchRacecar from '../assets/products/lunch-bag-racecar.jpg';
+import lunchFairy from '../assets/products/lunch-bag-fairy.jpg';
+import lunchAirplane from '../assets/products/lunch-bag-airplane.jpg';
+import lunchCat from '../assets/products/lunch-bag-cat.jpg';
+
+import lunchBox1 from '../assets/products/lunch-box-beige-1.jpg';
+import lunchBox2 from '../assets/products/lunch-box-beige-2.jpg';
+import lunchBox3 from '../assets/products/lunch-box-beige-3.jpg';
+import lunchBox4 from '../assets/products/lunch-box-beige-4.jpg';
+
+import feedingSetBeige from '../assets/products/feeding-set-beige.jpg';
+import feedingSetDarkPink from '../assets/products/feeding-set-dark-pink.jpg';
+import feedingSetDarkBlue from '../assets/products/feeding-set-dark-blue.jpg';
+import feedingSetSmokeGrey from '../assets/products/feeding-set-smoke-grey.jpg';
+
+
+
+import waterBottleCharacters from '../assets/products/water-bottle-characters.jpg';
+import waterBottleAntlers from '../assets/products/water-bottle-antlers.jpg';
+
+import highChairBeige from '../assets/products/highchair-beige.jpg';
+import highChairDarkGrey from '../assets/products/highchair-dark-grey.jpg';
+import highChairLightGrey from '../assets/products/highchair-light-grey.jpg';
+
+export const products = [
+    // SLEEPWEAR CATEGORY
     {
         id: 7,
-        name: "Unicorn Pajama Set",
-        category: "nightwear",
-        price: 24,
-        description: "Magical unicorn-themed pajama set",
-        icon: "🦄"
+        name: "Cozy Bunny Sleep Set",
+        category: "sleepwear",
+        price: 85,
+        description: "Soft pink sleepwear with cute bunny design",
+        image: sleepBunny1,
+        icon: "🐰",
+        variants: [
+            { name: "Design 1", image: sleepBunny1 },
+            { name: "Design 2", image: sleepBunny2 }
+        ]
     },
     {
         id: 8,
-        name: "Star Print Sleepwear",
-        category: "nightwear",
-        price: 21,
-        description: "Comfortable sleepwear with star patterns",
-        icon: "⭐"
-    },
-    {
-        id: 9,
-        name: "Soft Cotton Nightgown",
-        category: "nightwear",
-        price: 19,
-        description: "Breathable cotton nightgown for girls",
-        icon: "🌙"
-    },
-    {
-        id: 10,
-        name: "Dinosaur Pajamas",
-        category: "nightwear",
-        price: 23,
-        description: "Fun dinosaur print pajamas for boys",
-        icon: "🦕"
-    },
-    {
-        id: 11,
-        name: "Cartoon Character PJs",
-        category: "nightwear",
-        price: 26,
-        description: "Favorite cartoon character pajama set",
-        icon: "🎨"
-    },
-    {
-        id: 12,
-        name: "Baby Sleep Suit",
-        category: "nightwear",
-        price: 17,
-        description: "Cozy sleep suit for infants",
-        icon: "👶"
+        name: "Sweet Strawberry Sleep Set",
+        category: "sleepwear",
+        price: 85,
+        description: "Comfortable pink sleepwear with strawberry patterns",
+        icon: "🍓",
+        variants: [
+            { name: "Large Strawberry", image: sleepStrawberryLarge },
+            { name: "Small Strawberries", image: sleepStrawberrySmall },
+            { name: "Allover Pattern", image: sleepStrawberryAllover }
+        ]
     },
 
-    // TOYS CATEGORY
+    // POTTY TRAINER CATEGORY
     {
-        id: 13,
-        name: "Building Blocks Set",
-        category: "toys",
-        price: 35,
-        description: "Colorful building blocks for creative play",
-        icon: "🧱"
-    },
-    {
-        id: 14,
-        name: "Plush Teddy Bear",
-        category: "toys",
-        price: 28,
-        description: "Soft and cuddly teddy bear",
-        icon: "🧸"
-    },
-    {
-        id: 15,
-        name: "Musical Toy Piano",
-        category: "toys",
-        price: 42,
-        description: "Interactive piano with lights and sounds",
-        icon: "🎹"
-    },
-    {
-        id: 16,
-        name: "Puzzle Set",
-        category: "toys",
-        price: 15,
-        description: "Educational puzzle for cognitive development",
-        icon: "🧩"
-    },
-    {
-        id: 17,
-        name: "Toy Car Collection",
-        category: "toys",
-        price: 22,
-        description: "Set of colorful toy cars",
-        icon: "🚗"
-    },
-    {
-        id: 18,
-        name: "Doll House",
-        category: "toys",
-        price: 55,
-        description: "Beautiful doll house with furniture",
-        icon: "🏠"
+        id: 29,
+        name: "Potty Training Ladder",
+        category: "pottytrainer",
+        price: 350,
+        description: "Adjustable potty training seat with step stool ladder",
+        icon: "🚽",
+        variants: [
+            { name: "Green", image: pottyGreen },
+            { name: "Gray", image: pottyGray },
+            { name: "Pink", image: pottyPink },
+            { name: "Blue", image: pottyBlue },
+            { name: "Blue/Yellow", image: pottyYellowBlue }
+        ]
     },
 
-    // WALKERS & GEAR CATEGORY
+    // HIGH CHAIR CATEGORY
     {
-        id: 19,
-        name: "Baby Walker",
-        category: "walkers",
+        id: 32,
+        name: "Adjustable High Chair",
+        category: "highchair",
+        price: 450,
+        description: "Premium foldable high chair with adjustable height and tray",
+        icon: "🪑",
+        variants: [
+            { name: "Beige", image: highChairBeige },
+            { name: "Dark Grey", image: highChairDarkGrey },
+            { name: "Light Grey", image: highChairLightGrey }
+        ]
+    },
+
+    // FEEDING PRODUCTS CATEGORY
+    {
+        id: 43,
+        name: "Insulated Lunch Bag",
+        category: "feeding",
+        price: 150,
+        description: "Thermal insulation lunch bag with various fun designs",
+        icon: "🍱",
+        variants: [
+            { name: "Unicorn", image: lunchUnicorn },
+            { name: "Race Car", image: lunchRacecar },
+            { name: "Fairy", image: lunchFairy },
+            { name: "Airplane", image: lunchAirplane },
+            { name: "Cute Cat", image: lunchCat }
+        ]
+    },
+    {
+        id: 48,
+        name: "Premium Bento Lunch Box",
+        category: "feeding",
+        price: 200,
+        description: "Stainless steel multi-layer lunch box with cutlery set",
+        icon: "🍱",
+        variants: [
+            { name: "View 1", image: lunchBox1 },
+            { name: "View 2", image: lunchBox2 },
+            { name: "View 3", image: lunchBox3 },
+            { name: "View 4", image: lunchBox4 }
+        ]
+    },
+    {
+        id: 49,
+        name: "Ultimate Silicone Feeding Set",
+        category: "feeding",
+        price: 180,
+        description: "Complete set with bib, plate, bowl, cup, and cutlery",
+        icon: "🥣",
+        variants: [
+            { name: "Beige", image: feedingSetBeige },
+            { name: "Dark Pink", image: feedingSetDarkPink },
+            { name: "Smoke Grey", image: feedingSetSmokeGrey },
+            { name: "Dark Blue", image: feedingSetDarkBlue }
+        ]
+    },
+    {
+        id: 50,
+        name: "Kids Water Bottle",
+        category: "feeding",
         price: 65,
-        description: "Safe and sturdy baby walker with toys",
-        icon: "🚼"
-    },
-    {
-        id: 20,
-        name: "Stroller",
-        category: "walkers",
-        price: 99,
-        description: "Lightweight and foldable stroller",
-        icon: "👶"
-    },
-    {
-        id: 21,
-        name: "Baby Carrier",
-        category: "walkers",
-        price: 45,
-        description: "Comfortable baby carrier for parents",
-        icon: "🎒"
-    },
-    {
-        id: 22,
-        name: "Activity Walker",
-        category: "walkers",
-        price: 72,
-        description: "Interactive walker with music and lights",
-        icon: "🎵"
-    },
-    {
-        id: 23,
-        name: "Baby Rocker",
-        category: "walkers",
-        price: 58,
-        description: "Soothing baby rocker with vibration",
-        icon: "🪑"
-    },
-    {
-        id: 24,
-        name: "Play Gym",
-        category: "walkers",
-        price: 48,
-        description: "Activity gym for infant development",
-        icon: "🎪"
+        description: "Cute and durable water bottles for kids",
+        icon: "💧",
+        variants: [
+            { name: "Character Designs", image: waterBottleCharacters },
+            { name: "Antler Designs", image: waterBottleAntlers }
+        ]
     }
 ];
 
 // Category information
 export const categories = [
     {
-        id: "clothing",
-        name: "Kids Clothing",
-        description: "Adorable outfits for every occasion",
-        icon: "👗"
-    },
-    {
-        id: "nightwear",
-        name: "Nightwear",
+        id: "sleepwear",
+        name: "Sleepwear",
         description: "Cozy pajamas for sweet dreams",
         icon: "🌙"
+    },
+    {
+        id: "onesies",
+        name: "Onesies",
+        description: "Comfortable one-piece outfits",
+        icon: "👶"
     },
     {
         id: "toys",
@@ -229,5 +182,23 @@ export const categories = [
         name: "Walkers",
         description: "Essential baby equipment",
         icon: "🚼"
+    },
+    {
+        id: "pottytrainer",
+        name: "Potty Trainer",
+        description: "Training essentials for toddlers",
+        icon: "🚽"
+    },
+    {
+        id: "highchair",
+        name: "High Chair",
+        description: "Safe and comfortable feeding chairs",
+        icon: "🪑"
+    },
+    {
+        id: "feeding",
+        name: "Feeding Products",
+        description: "Essential feeding supplies",
+        icon: "🍼"
     }
 ];

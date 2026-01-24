@@ -10,14 +10,14 @@
 }
 
 :root {
-  /* Color Palette - Vibrant & Kid-Friendly */
-  --primary-color: #FF6B9D;
-  --primary-dark: #E5528A;
-  --primary-light: #FFB3D1;
+  /* Color Palette - Elegant & Warm */
+  --primary-color: #bd2932;
+  --primary-dark: #561c24;
+  --primary-light: #d94d59;
 
-  --secondary-color: #4ECDC4;
-  --secondary-dark: #3BB5AD;
-  --secondary-light: #A8E6E3;
+  --secondary-color: #c7b7a3;
+  --secondary-dark: #a89985;
+  --secondary-light: #e5ddd0;
 
   --accent-yellow: #FFD93D;
   --accent-purple: #A78BFA;
@@ -32,9 +32,9 @@
   --text-dark: #1F2937;
 
   /* Gradients */
-  --gradient-primary: linear-gradient(135deg, #FF6B9D 0%, #FFB3D1 100%);
-  --gradient-secondary: linear-gradient(135deg, #4ECDC4 0%, #A8E6E3 100%);
-  --gradient-rainbow: linear-gradient(135deg, #FF6B9D 0%, #FFD93D 50%, #4ECDC4 100%);
+  --gradient-primary: linear-gradient(135deg, #bd2932 0%, #d94d59 100%);
+  --gradient-secondary: linear-gradient(135deg, #c7b7a3 0%, #e5ddd0 100%);
+  --gradient-rainbow: linear-gradient(135deg, #561c24 0%, #bd2932 50%, #c7b7a3 100%);
 
   /* Spacing */
   --spacing-xs: 0.5rem;
@@ -52,7 +52,7 @@
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
   --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
-  --shadow-colored: 0 8px 24px rgba(255, 107, 157, 0.25);
+  --shadow-colored: 0 8px 24px rgba(189, 41, 50, 0.25);
 
   /* Border Radius */
   --radius-sm: 8px;
@@ -204,7 +204,7 @@ nav {
 
 .cart-icon:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(255, 107, 157, 0.35);
+  box-shadow: 0 12px 32px rgba(189, 41, 50, 0.35);
 }
 
 .cart-count {
@@ -344,7 +344,7 @@ nav {
 
 .btn-secondary:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 32px rgba(255, 107, 157, 0.4);
+  box-shadow: 0 12px 32px rgba(189, 41, 50, 0.4);
 }
 
 .btn-outline {

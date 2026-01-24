@@ -21,7 +21,7 @@ const Header = () => {
         <header>
             <nav>
                 <div className="logo" onClick={() => scrollToSection('#home')}>
-                    Aisha's Shop 👶
+                    minimekiddiestreasures 👶
                 </div>
 
                 <ul className={`nav-links ${isMobileMenuOpen ? 'active' : ''}`}>
