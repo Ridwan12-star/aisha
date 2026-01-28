@@ -1,7 +1,4 @@
-import React from 'react';
-import { categories } from '../data/productsData';
-
-const Categories = ({ onCategoryClick }) => {
+const Categories = ({ categories, onCategoryClick }) => {
     return (
         <section className="categories-section" id="categories">
             <div className="container">

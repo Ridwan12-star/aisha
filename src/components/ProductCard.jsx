@@ -8,11 +8,14 @@ const ProductCard = ({ product }) => {
     const [currentVariantIndex, setCurrentVariantIndex] = useState(0);
 
     const hasVariants = product.variants && product.variants.length > 0;
-    const currentProduct = hasVariants ? product.variants[currentVariantIndex] : product;
+    const currentVariant = hasVariants ? product.variants[currentVariantIndex] : null;
 
     // Use variant image or fallback to main product image/icon
-    const displayImage = hasVariants ? currentProduct.image : (product.image || product.icon);
-    const displayName = hasVariants ? `${product.name} - ${currentProduct.name}` : product.name;
+    const displayImage = hasVariants && currentVariant.image
+        ? currentVariant.image
+        : (product.image || product.icon);
+
+    const displayName = hasVariants && currentVariant.name ? `${product.name} - ${currentVariant.name}` : product.name;
 
     const handleNextVariant = (e) => {
         e.stopPropagation();
@@ -24,19 +27,40 @@ const ProductCard = ({ product }) => {
         setCurrentVariantIndex((prev) => (prev - 1 + product.variants.length) % product.variants.length);
     };
 
+    // Check if product is in stock (undefined means in stock for backward compatibility)
+    const inStock = product.inStock !== false;
+
     const handleAddToCart = () => {
+        if (!inStock) return;
+
         const itemToAdd = {
-            ...product, // Keep original ID and main info
-            name: displayName, // Update name to include variant
-            image: hasVariants ? currentProduct.image : product.image, // Use exact image
-            variant: hasVariants ? currentProduct.name : null
+            ...product,
+            name: displayName,
+            image: displayImage,
+            variant: hasVariants && currentVariant ? currentVariant.name : null
         };
         addToCart(itemToAdd);
     };
 
     return (
-        <div className="product-card">
+        <div className="product-card" style={{ opacity: inStock ? 1 : 0.6 }}>
             <div className="product-image" style={{ position: 'relative' }}>
+                {!inStock && (
+                    <div style={{
+                        position: 'absolute',
+                        top: '10px',
+                        left: '10px',
+                        background: '#dc3545',
+                        color: 'white',
+                        padding: '5px 10px',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        zIndex: 10
+                    }}>
+                        Sold Out
+                    </div>
+                )}
+
                 {typeof displayImage === 'string' && (displayImage.startsWith('http') || displayImage.startsWith('/')) ? (
                     <img src={displayImage} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
@@ -92,7 +116,7 @@ const ProductCard = ({ product }) => {
                             borderRadius: '10px',
                             fontSize: '0.8rem'
                         }}>
-                            {currentProduct.name}
+                            {currentVariant.name}
                         </div>
                     </>
                 )}
@@ -101,8 +125,17 @@ const ProductCard = ({ product }) => {
                 <h3 className="product-name">{product.name}</h3>
                 <p className="product-description">{product.description}</p>
                 <div className="product-price">GH₵{product.price.toLocaleString()}</div>
-                <button className="add-to-cart-btn" onClick={handleAddToCart}>
-                    Add to Cart 🛒
+                <button
+                    className="add-to-cart-btn"
+                    onClick={handleAddToCart}
+                    disabled={!inStock}
+                    style={{
+                        opacity: inStock ? 1 : 0.5,
+                        cursor: inStock ? 'pointer' : 'not-allowed',
+                        background: inStock ? undefined : '#ccc'
+                    }}
+                >
+                    {inStock ? 'Add to Cart 🛒' : 'Out of Stock'}
                 </button>
             </div>
         </div>
