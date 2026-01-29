@@ -161,6 +161,22 @@ p {
   padding: 0 var(--spacing-md);
 }
 
+/* Admin Layout */
+.admin-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-top: 1rem;
+}
+
+@media (min-width: 900px) {
+  .admin-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 40px;
+  }
+}
+
 /* ===================================
    HEADER & NAVIGATION
    =================================== */

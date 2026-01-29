@@ -226,7 +226,7 @@ const Admin = () => {
                 </div>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 40, marginTop: 20 }}>
+            <div className="admin-grid">
                 {/* Add Product Form */}
                 <div style={{ background: '#f5f5f5', padding: 20, borderRadius: 8, height: 'fit-content' }}>
                     <h3>Add New Product</h3>
