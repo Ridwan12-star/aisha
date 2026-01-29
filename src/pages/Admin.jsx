@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { auth, db } from '../lib/firebase';
 import { signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'firebase/auth';
 import { collection, addDoc, deleteDoc, doc, onSnapshot, updateDoc } from 'firebase/firestore';
+import { getMainCategories, getSubcategories, normalizeCategoryId } from '../utils/categoryUtils';
 
 const Admin = () => {
     const [user, setUser] = useState(null);
@@ -13,6 +14,8 @@ const Admin = () => {
     // Product Form State
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
+    const [selectedMainCategory, setSelectedMainCategory] = useState('');
+    const [selectedSubcategory, setSelectedSubcategory] = useState('');
     const [newProduct, setNewProduct] = useState({
         name: '',
         price: '',
@@ -34,7 +37,11 @@ const Admin = () => {
 
         // Real-time listener for categories
         const unsubscribeCategories = onSnapshot(collection(db, 'categories'), (snapshot) => {
-            setCategories(snapshot.docs.map(d => ({ ...d.data(), id: d.id })));
+            const categoriesData = snapshot.docs.map(d => ({ ...d.data(), id: d.id }));
+            setCategories(categoriesData);
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:38',message:'Categories loaded in admin',data:{totalCategories:categoriesData.length,categories:categoriesData.map(c=>({id:c.id,name:c.name}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
         });
 
         return () => {
@@ -88,8 +95,16 @@ const Admin = () => {
 
     const handleAddProduct = async (e) => {
         e.preventDefault();
+        if (!selectedMainCategory) {
+            alert('Please select a main category');
+            return;
+        }
+        if ((selectedMainCategory === 'babygear' || selectedMainCategory === 'clothing') && !selectedSubcategory) {
+            alert('Please select a subcategory');
+            return;
+        }
         if (!newProduct.category) {
-            alert('Please select a category');
+            alert('Category not properly set. Please try selecting the category again.');
             return;
         }
         if (!newProduct.image) {
@@ -99,6 +114,10 @@ const Admin = () => {
 
         setIsLoading(true);
         try {
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:100',message:'Adding product',data:{productName:newProduct.name,category:newProduct.category,selectedMainCategory,selectedSubcategory},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+            
             await addDoc(collection(db, 'products'), {
                 ...newProduct,
                 price: Number(newProduct.price),
@@ -106,6 +125,8 @@ const Admin = () => {
                 inStock: newProduct.inStock
             });
             setNewProduct({ name: '', price: '', category: '', description: '', image: '', inStock: true });
+            setSelectedMainCategory('');
+            setSelectedSubcategory('');
 
             // Reset file input
             const fileInput = document.getElementById('fileInput');
@@ -118,6 +139,57 @@ const Admin = () => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    // Handle main category selection
+    const handleMainCategoryChange = (e) => {
+        const mainCategoryId = e.target.value;
+        setSelectedMainCategory(mainCategoryId);
+        setSelectedSubcategory('');
+        
+        // For categories without subcategories, set the category directly
+        if (mainCategoryId && mainCategoryId !== 'babygear' && mainCategoryId !== 'clothing') {
+            // Find the Firebase category document ID that matches the normalized category
+            const firebaseCategory = categories.find(cat => {
+                const normalized = normalizeCategoryId(cat.id, cat.name);
+                return normalized === mainCategoryId;
+            });
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:120',message:'Main category selected',data:{mainCategoryId,firebaseCategoryId:firebaseCategory?.id,firebaseCategoryName:firebaseCategory?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+            
+            setNewProduct({ ...newProduct, category: firebaseCategory?.id || mainCategoryId });
+        } else {
+            setNewProduct({ ...newProduct, category: '' });
+        }
+    };
+
+    // Handle subcategory selection
+    const handleSubcategoryChange = (e) => {
+        const subcategoryId = e.target.value;
+        setSelectedSubcategory(subcategoryId);
+        
+        // Get the Firebase category ID for the subcategory
+        const subcategories = getSubcategories(selectedMainCategory);
+        const selectedSub = subcategories.find(sub => sub.id === subcategoryId);
+        const firebaseCategoryId = selectedSub?.firebaseCategoryId || subcategoryId;
+        
+        // Find the actual Firebase category document ID
+        const firebaseCategory = categories.find(cat => {
+            const catName = cat.name?.toLowerCase() || '';
+            const catId = cat.id?.toLowerCase().replace(/\s+/g, '') || '';
+            const normalized = normalizeCategoryId(cat.id, cat.name);
+            return normalized === firebaseCategoryId || 
+                   catName.includes(firebaseCategoryId.toLowerCase()) || 
+                   catId === firebaseCategoryId.toLowerCase().replace(/\s+/g, '');
+        });
+        
+        setNewProduct({ ...newProduct, category: firebaseCategory?.id || firebaseCategoryId });
+        
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:130',message:'Subcategory selected',data:{subcategoryId,firebaseCategoryId,selectedCategoryId:firebaseCategory?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
     };
 
     const [deletingId, setDeletingId] = useState(null);
@@ -246,17 +318,40 @@ const Admin = () => {
                             required
                             style={{ padding: 8 }}
                         />
+                        {/* Main Category Selection */}
+                        <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Main Category:</label>
                         <select
-                            value={newProduct.category}
-                            onChange={e => setNewProduct({ ...newProduct, category: e.target.value })}
+                            value={selectedMainCategory}
+                            onChange={handleMainCategoryChange}
                             required
                             style={{ padding: 8 }}
                         >
-                            <option value="">Select Category</option>
-                            {categories.map(c => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
+                            <option value="">Select Main Category</option>
+                            {getMainCategories(categories).map(c => (
+                                <option key={c.id} value={c.normalizedId}>{c.displayName || c.name}</option>
                             ))}
                         </select>
+
+                        {/* Subcategory Selection (only for Baby Gear and Clothing) */}
+                        {(selectedMainCategory === 'babygear' || selectedMainCategory === 'clothing') && (
+                            <>
+                                <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Subcategory:</label>
+                                <select
+                                    value={selectedSubcategory}
+                                    onChange={handleSubcategoryChange}
+                                    required
+                                    style={{ padding: 8 }}
+                                >
+                                    <option value="">Select Subcategory</option>
+                                    {getSubcategories(selectedMainCategory).map(sub => (
+                                        <option key={sub.id} value={sub.id}>{sub.name}</option>
+                                    ))}
+                                </select>
+                            </>
+                        )}
+
+                        {/* Hidden input to store the actual Firebase category ID */}
+                        <input type="hidden" value={newProduct.category} />
 
                         {/* Image Upload Input */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>

@@ -39,7 +39,7 @@ const Footer = ({ onCategoryClick }) => {
                 <div className="footer-section">
                     <h3>Contact Info</h3>
                     <p>📱 WhatsApp: +233 (05) 538 232 507</p>
-                    <p>📧 Email: info@aishasshop.com</p>
+                    <p>📧 Email: minimekiddiestreasures@gmail.com</p>
                     <p>📍 Location: Koforidua, Ghana</p>
                     <p style={{ marginTop: '1rem' }}>
                         <strong>Business Hours:</strong><br />
