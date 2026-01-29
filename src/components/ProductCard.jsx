@@ -61,7 +61,7 @@ const ProductCard = ({ product }) => {
                     </div>
                 )}
 
-                {typeof displayImage === 'string' && (displayImage.startsWith('http') || displayImage.startsWith('/')) ? (
+                {typeof displayImage === 'string' && (displayImage.startsWith('http') || displayImage.startsWith('/') || displayImage.startsWith('data:')) ? (
                     <img src={displayImage} alt={displayName} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                 ) : (
                     <div style={{ fontSize: '4rem' }}>{displayImage}</div>
