@@ -13,6 +13,9 @@ export default defineConfig({
                 short_name: 'MiniMe',
                 description: 'Quality children\'s clothing, toys, and essentials.',
                 theme_color: '#ffffff',
+                start_url: '/admin',
+                display: 'standalone',
+                background_color: '#ffffff',
                 icons: [
                     {
                         src: 'https://placehold.co/192x192/png?text=MiniMe',
