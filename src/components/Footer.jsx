@@ -29,13 +29,11 @@ const Footer = ({ onCategoryClick }) => {
 
                 <div className="footer-section">
                     <h3>Categories</h3>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('sleepwear'); scrollToSection('#products'); }}>Sleepwear</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('onesies'); scrollToSection('#products'); }}>Onesies</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('sleepwear'); scrollToSection('#products'); }}>Sleep Wear</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('clothing'); scrollToSection('#products'); }}>Clothing</a>
                     <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('toys'); scrollToSection('#products'); }}>Toys</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('walkers'); scrollToSection('#products'); }}>Walkers</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('pottytrainer'); scrollToSection('#products'); }}>Potty Trainer</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('highchair'); scrollToSection('#products'); }}>High Chair</a>
-                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('feeding'); scrollToSection('#products'); }}>Feeding Products</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('babygear'); scrollToSection('#products'); }}>Baby Gear</a>
+                    <a href="#" onClick={(e) => { e.preventDefault(); onCategoryClick('feeding'); scrollToSection('#products'); }}>Feeding</a>
                 </div>
 
                 <div className="footer-section">

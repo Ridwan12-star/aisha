@@ -3,7 +3,10 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 
-const ProductCard = ({ product }) => {
+const ProductCard = ({ product, onClick }) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductCard.jsx:6',message:'ProductCard render',data:{productId:product?._id,onClickExists:typeof onClick==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+    // #endregion
     const { addToCart } = useCart();
     const [currentVariantIndex, setCurrentVariantIndex] = useState(0);
 
@@ -43,7 +46,15 @@ const ProductCard = ({ product }) => {
     };
 
     return (
-        <div className="product-card" style={{ opacity: inStock ? 1 : 0.6 }}>
+        <div 
+            className="product-card" 
+            style={{ opacity: inStock ? 1 : 0.6 }}
+            onClick={onClick || (() => {
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductCard.jsx:49',message:'onClick undefined fallback',data:{productId:product?._id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+                // #endregion
+            })}
+        >
             <div className="product-image" style={{ position: 'relative' }}>
                 {!inStock && (
                     <div style={{
@@ -128,7 +139,10 @@ const ProductCard = ({ product }) => {
                 <div className="product-price">GH₵{product.price.toLocaleString()}</div>
                 <button
                     className="add-to-cart-btn"
-                    onClick={handleAddToCart}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddToCart();
+                    }}
                     disabled={!inStock}
                     style={{
                         opacity: inStock ? 1 : 0.5,
