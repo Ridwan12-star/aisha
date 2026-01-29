@@ -52,9 +52,10 @@ const ProductCard = ({ product }) => {
                         left: '10px',
                         background: '#dc3545',
                         color: 'white',
-                        padding: '5px 10px',
+                        padding: '4px 8px', /* Reduced padding */
                         borderRadius: '4px',
                         fontWeight: 'bold',
+                        fontSize: '0.8rem', /* Smaller font */
                         zIndex: 10
                     }}>
                         Sold Out

@@ -153,6 +153,39 @@ const Admin = () => {
         }
     };
 
+    const handleUpdateCategories = async () => {
+        setIsLoading(true);
+        try {
+            // 1. Rename Night Wear -> Sleep Wear
+            const nightWear = categories.find(c => c.name === 'Night Wear');
+            if (nightWear) {
+                await updateDoc(doc(db, 'categories', nightWear.id), { name: 'Sleep Wear' });
+            }
+
+            // 2. Add new categories
+            const newCategories = [
+                { name: 'High Chair', icon: '🪑' },
+                { name: 'Onesies', icon: '👘' },
+                { name: 'Potty Trainer', icon: '🚽' },
+                { name: 'Food Products', icon: '🍼' }
+            ];
+
+            for (const cat of newCategories) {
+                // Check if category already exists (simple case-insensitive check)
+                const exists = categories.some(c => c.name.toLowerCase() === cat.name.toLowerCase());
+                if (!exists) {
+                    await addDoc(collection(db, 'categories'), cat);
+                }
+            }
+            alert('Categories updated successfully!');
+        } catch (error) {
+            console.error(error);
+            alert('Error updating categories: ' + error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     if (!user) {
         return (
             <div style={{ maxWidth: 400, margin: '50px auto', padding: 20 }}>
@@ -185,7 +218,12 @@ const Admin = () => {
         <div className="container" style={{ paddingTop: 20 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h1>Admin Dashboard</h1>
-                <button onClick={handleLogout} style={{ padding: '5px 10px' }}>Logout</button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button onClick={handleUpdateCategories} style={{ padding: '5px 10px', background: '#2196F3', color: 'white', border: 'none', cursor: 'pointer' }}>
+                        Update Categories
+                    </button>
+                    <button onClick={handleLogout} style={{ padding: '5px 10px' }}>Logout</button>
+                </div>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 40, marginTop: 20 }}>

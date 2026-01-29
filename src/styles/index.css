@@ -54,6 +54,10 @@
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.16);
   --shadow-colored: 0 8px 24px rgba(189, 41, 50, 0.25);
 
+  /* Loading Spinner */
+  --spinner-size: 40px;
+  --spinner-color: var(--primary-color);
+
   /* Border Radius */
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -64,6 +68,47 @@
   --transition-fast: 0.2s ease;
   --transition-normal: 0.3s ease;
   --transition-slow: 0.5s ease;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100%;
+  background: var(--off-white);
+}
+
+.loading-spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid rgba(189, 41, 50, 0.2);
+  /* Light primary */
+  border-left-color: var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Border Radius */
+--radius-sm: 8px;
+--radius-md: 12px;
+--radius-lg: 20px;
+--radius-xl: 30px;
+
+/* Transitions */
+--transition-fast: 0.2s ease;
+--transition-normal: 0.3s ease;
+--transition-slow: 0.5s ease;
 }
 
 body {
@@ -948,6 +993,21 @@ footer {
   .add-to-cart-btn {
     padding: 0.5rem;
     font-size: 0.85rem;
+  }
+
+  /* Center Footer Sections */
+  .footer-section {
+    text-align: center;
+  }
+
+  .footer-section h3 {
+    display: flex;
+    justify-content: center;
+  }
+
+  .footer-section a {
+    display: block;
+    /* ensure links behave as blocks for centering if needed */
   }
 }
 

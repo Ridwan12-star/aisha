@@ -82,7 +82,11 @@ function Home() {
     };
 
     if (loading) {
-        return <div className="loading">Loading Aisha's Shop...</div>;
+        return (
+            <div className="loading-container">
+                <div className="loading-spinner"></div>
+            </div>
+        );
     }
 
     return (
