@@ -17,27 +17,60 @@ export const CartProvider = ({ children }) => {
 
     // Add item to cart
     const addToCart = (product) => {
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CartContext.jsx:19',message:'addToCart called',data:{productId:product._id||product.id,productName:product.name,hasImage:!!product.image,hasIcon:!!product.icon},timestamp:Date.now(),sessionId:'debug-session',runId:'run7',hypothesisId:'G'})}).catch(()=>{});
+        // #endregion
+        
         setCartItems(prevItems => {
-            const existingItem = prevItems.find(item => item.id === product.id);
+            // Use consistent ID - prefer _id (Firebase) or id
+            const productId = product._id || product.id;
+            const existingItem = prevItems.find(item => {
+                const itemId = item._id || item.id;
+                return itemId === productId;
+            });
 
             if (existingItem) {
-                return prevItems.map(item =>
-                    item.id === product.id
+                const updated = prevItems.map(item => {
+                    const itemId = item._id || item.id;
+                    return itemId === productId
                         ? { ...item, quantity: item.quantity + 1 }
-                        : item
-                );
+                        : item;
+                });
+                // #region agent log
+                fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CartContext.jsx:30',message:'Item quantity updated',data:{productId,newQuantity:existingItem.quantity+1,allItems:updated.map(i=>({id:i._id||i.id,name:i.name,qty:i.quantity}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run7',hypothesisId:'G'})}).catch(()=>{});
+                // #endregion
+                return updated;
             }
 
-            return [...prevItems, { ...product, quantity: 1 }];
+            // Create unique cart item with consistent ID
+            const newItem = {
+                ...product,
+                id: productId, // Ensure id field exists
+                _id: product._id, // Keep _id if it exists
+                quantity: 1
+            };
+            const newItems = [...prevItems, newItem];
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CartContext.jsx:42',message:'New item added to cart',data:{productId,productName:product.name,allItems:newItems.map(i=>({id:i._id||i.id,name:i.name,qty:i.quantity}))},timestamp:Date.now(),sessionId:'debug-session',runId:'run7',hypothesisId:'G'})}).catch(()=>{});
+            // #endregion
+            return newItems;
         });
 
-        // Open cart when item is added
-        setIsCartOpen(true);
+        // DO NOT auto-open cart - user should click cart icon to view
     };
 
     // Remove item from cart
     const removeFromCart = (productId) => {
-        setCartItems(prevItems => prevItems.filter(item => item.id !== productId));
+        setCartItems(prevItems => {
+            const filtered = prevItems.filter(item => {
+                const itemId = item._id || item.id;
+                return itemId !== productId;
+            });
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CartContext.jsx:50',message:'Item removed from cart',data:{productId,remainingItems:filtered.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run7',hypothesisId:'G'})}).catch(()=>{});
+            // #endregion
+            return filtered;
+        });
     };
 
     // Update quantity
@@ -47,13 +80,18 @@ export const CartProvider = ({ children }) => {
             return;
         }
 
-        setCartItems(prevItems =>
-            prevItems.map(item =>
-                item.id === productId
+        setCartItems(prevItems => {
+            const updated = prevItems.map(item => {
+                const itemId = item._id || item.id;
+                return itemId === productId
                     ? { ...item, quantity: newQuantity }
-                    : item
-            )
-        );
+                    : item;
+            });
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CartContext.jsx:60',message:'Quantity updated',data:{productId,newQuantity},timestamp:Date.now(),sessionId:'debug-session',runId:'run7',hypothesisId:'G'})}).catch(()=>{});
+            // #endregion
+            return updated;
+        });
     };
 
     // Calculate total

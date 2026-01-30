@@ -635,6 +635,13 @@ nav {
   visibility: visible;
 }
 
+/* Prevent body scroll when cart is open */
+body.cart-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
 .cart-header {
   padding: var(--spacing-lg);
   border-bottom: 2px solid var(--light-gray);
