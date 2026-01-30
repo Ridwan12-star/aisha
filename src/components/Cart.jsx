@@ -6,16 +6,18 @@ const Cart = () => {
         cartItems,
         isCartOpen,
         setIsCartOpen,
+        setIsCheckoutOpen,
         removeFromCart,
         updateQuantity,
-        getTotal,
-        generateWhatsAppMessage
+        getTotal
     } = useCart();
 
     const handleCheckout = () => {
-        const message = generateWhatsAppMessage();
-        const whatsappUrl = `https://wa.me/233599992748?text=${encodeURIComponent(message)}`;
-        window.open(whatsappUrl, '_blank');
+        setIsCartOpen(false);
+        setIsCheckoutOpen(true);
+        // #region agent log
+        fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Cart.jsx:15',message:'Checkout clicked',data:{itemsCount:cartItems.length,total:getTotal()},timestamp:Date.now(),sessionId:'debug-session',runId:'run6',hypothesisId:'F'})}).catch(()=>{});
+        // #endregion
     };
 
     return (
@@ -40,7 +42,14 @@ const Cart = () => {
                     ) : (
                         cartItems.map(item => (
                             <div key={item.id} className="cart-item">
-                                <div className="cart-item-image">{item.icon}</div>
+                                <div className="cart-item-image">
+                                    {typeof item.image === 'string' && 
+                                     (item.image.startsWith('http') || item.image.startsWith('/') || item.image.startsWith('data:')) ? (
+                                        <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                    ) : (
+                                        <div style={{ fontSize: '2rem', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>{item.image || item.icon || '📦'}</div>
+                                    )}
+                                </div>
                                 <div className="cart-item-details">
                                     <div className="cart-item-name">{item.name}</div>
                                     <div className="cart-item-price">GH₵{item.price.toLocaleString()}</div>
@@ -78,8 +87,7 @@ const Cart = () => {
                             <span className="cart-total-amount">GH₵{getTotal().toLocaleString()}</span>
                         </div>
                         <button className="btn btn-whatsapp checkout-btn" onClick={handleCheckout}>
-                            <span>💬</span>
-                            Checkout via WhatsApp
+                            Proceed to Checkout
                         </button>
                     </div>
                 )}

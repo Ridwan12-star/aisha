@@ -24,6 +24,13 @@ const Admin = () => {
         image: '', // Base64 string
         inStock: true
     });
+    
+    // Category Form State
+    const [newCategory, setNewCategory] = useState({
+        name: '',
+        description: '',
+        icon: ''
+    });
 
     useEffect(() => {
         const unsubscribeAuth = onAuthStateChanged(auth, (currentUser) => {
@@ -225,6 +232,50 @@ const Admin = () => {
         }
     };
 
+    const handleAddCategory = async (e) => {
+        e.preventDefault();
+        if (!newCategory.name.trim()) {
+            alert('Please enter a category name');
+            return;
+        }
+        if (!newCategory.icon.trim()) {
+            alert('Please enter an emoji icon');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            // Check if category already exists
+            const exists = categories.some(c => 
+                c.name.toLowerCase().trim() === newCategory.name.toLowerCase().trim()
+            );
+            
+            if (exists) {
+                alert('This category already exists!');
+                setIsLoading(false);
+                return;
+            }
+
+            await addDoc(collection(db, 'categories'), {
+                name: newCategory.name.trim(),
+                description: newCategory.description.trim() || '',
+                icon: newCategory.icon.trim()
+            });
+            
+            setNewCategory({ name: '', description: '', icon: '' });
+            alert('Category added successfully!');
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:245',message:'Category added',data:{categoryName:newCategory.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'C'})}).catch(()=>{});
+            // #endregion
+        } catch (error) {
+            console.error(error);
+            alert('Error adding category: ' + error.message);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const handleUpdateCategories = async () => {
         setIsLoading(true);
         try {
@@ -296,6 +347,51 @@ const Admin = () => {
                     </button>
                     <button onClick={handleLogout} style={{ padding: '5px 10px' }}>Logout</button>
                 </div>
+            </div>
+
+            {/* Add Category Form */}
+            <div style={{ background: '#e8f5e9', padding: 20, borderRadius: 8, marginBottom: 20, maxWidth: '600px' }}>
+                <h3>➕ Add New Category</h3>
+                <p style={{ fontSize: '0.9rem', color: '#666', marginBottom: 15 }}>
+                    Create a new category for your products. The category will appear on the website automatically.
+                </p>
+                <form onSubmit={handleAddCategory} style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    <input
+                        placeholder="Category Name (e.g., Feeding, Clothing, Toys)"
+                        value={newCategory.name}
+                        onChange={e => setNewCategory({ ...newCategory, name: e.target.value })}
+                        required
+                        style={{ padding: 8 }}
+                    />
+                    <input
+                        placeholder="Icon (Emoji, e.g., 🍼 👕 🧸)"
+                        value={newCategory.icon}
+                        onChange={e => setNewCategory({ ...newCategory, icon: e.target.value })}
+                        required
+                        maxLength={2}
+                        style={{ padding: 8 }}
+                    />
+                    <textarea
+                        placeholder="Description (optional)"
+                        value={newCategory.description}
+                        onChange={e => setNewCategory({ ...newCategory, description: e.target.value })}
+                        style={{ padding: 8, height: 60 }}
+                    />
+                    <button
+                        type="submit"
+                        disabled={isLoading}
+                        style={{
+                            padding: 10,
+                            background: isLoading ? '#ccc' : '#4CAF50',
+                            color: '#fff',
+                            border: 'none',
+                            cursor: isLoading ? 'not-allowed' : 'pointer',
+                            borderRadius: '4px'
+                        }}
+                    >
+                        {isLoading ? 'Adding...' : 'Add Category'}
+                    </button>
+                </form>
             </div>
 
             <div className="admin-grid">

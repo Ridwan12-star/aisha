@@ -1,38 +1,71 @@
 import React from 'react';
 import ProductCard from './ProductCard';
+import { normalizeCategoryId } from '../utils/categoryUtils';
 
-const ProductGrid = ({ products, selectedCategory, selectedSubcategory, onProductClick }) => {
+const ProductGrid = ({ products, selectedCategory, selectedSubcategory, onProductClick, categories = [] }) => {
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:4',message:'ProductGrid render',data:{productsCount:products.length,selectedCategory,selectedSubcategory,onProductClickExists:typeof onProductClick==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:5',message:'ProductGrid render',data:{productsCount:products.length,selectedCategory,selectedSubcategory,categoriesCount:categories.length,onProductClickExists:typeof onProductClick==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'E'})}).catch(()=>{});
     // #endregion
     let filteredProducts = products;
+    
+    // Helper function to get Firebase category IDs that match a normalized category
+    const getCategoryIdsForNormalized = (normalizedCategory) => {
+        return categories
+            .filter(cat => {
+                const normalized = normalizeCategoryId(cat.id, cat.name);
+                return normalized === normalizedCategory;
+            })
+            .map(cat => cat.id);
+    };
 
     if (selectedSubcategory) {
         // Filter by subcategory
         if (selectedCategory === 'babygear') {
-            // Map subcategories to actual category IDs (handle both old and new category names)
+            // Map subcategories to Firebase category names/IDs
             const subcategoryMap = {
                 'babywalker': ['walkers', 'walker', 'babywalker', 'baby walker'],
-                'highchair': ['highchair', 'high chair', 'highchair'],
-                'pottytrainer': ['pottytrainer', 'potty trainer', 'pottytrainer']
+                'highchair': ['highchair', 'high chair'],
+                'pottytrainer': ['pottytrainer', 'potty trainer']
             };
-            const categoriesToFilter = subcategoryMap[selectedSubcategory] || [selectedSubcategory];
-            if (categoriesToFilter.length > 0) {
+            const categoryNamesToMatch = subcategoryMap[selectedSubcategory] || [selectedSubcategory];
+            
+            // Get Firebase category IDs that match the subcategory
+            const matchingCategoryIds = categories
+                .filter(cat => {
+                    const catName = cat.name?.toLowerCase() || '';
+                    return categoryNamesToMatch.some(name => catName.includes(name.toLowerCase()));
+                })
+                .map(cat => cat.id);
+            
+            if (matchingCategoryIds.length > 0 || categoryNamesToMatch.length > 0) {
                 filteredProducts = products.filter(product => {
+                    // Match by Firebase document ID (primary)
+                    const matchesById = matchingCategoryIds.includes(product.category);
+                    
+                    // Match by category name (fallback)
                     const productCategory = product.category?.toLowerCase().replace(/\s+/g, '') || '';
                     const productCategoryOriginal = product.category?.toLowerCase() || '';
-                    const matches = categoriesToFilter.some(cat => 
+                    const matchesByName = categoryNamesToMatch.some(cat => 
                         productCategory === cat.toLowerCase().replace(/\s+/g, '') ||
                         productCategoryOriginal === cat.toLowerCase() ||
                         productCategory.includes(cat.toLowerCase().replace(/\s+/g, '')) ||
                         (selectedSubcategory === 'babywalker' && (productCategory.includes('walker') || productCategoryOriginal.includes('walker')))
                     );
+                    
+                    // Also check if product.category is a Firebase ID that we need to look up
+                    const productCategoryDoc = categories.find(cat => cat.id === product.category);
+                    const productCategoryName = productCategoryDoc?.name?.toLowerCase() || '';
+                    const matchesByLookup = categoryNamesToMatch.some(name => 
+                        productCategoryName.includes(name.toLowerCase())
+                    );
+                    
                     // #region agent log
-                    if (products.indexOf(product) < 3) { // Log first 3 products only
-                        fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:22',message:'Filtering product',data:{productName:product.name,productCategory,categoriesToFilter,selectedSubcategory,matches},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'E'})}).catch(()=>{});
+                    if (products.indexOf(product) < 3) {
+                        fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:30',message:'Filtering product by subcategory',data:{productName:product.name,productCategory:product.category,selectedSubcategory,matchingCategoryIds,matchesById,matchesByName,matchesByLookup,productCategoryDocName:productCategoryDoc?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'E'})}).catch(()=>{});
                     }
                     // #endregion
-                    return matches;
+                    
+                    return matchesById || matchesByName || matchesByLookup;
                 });
             }
         } else if (selectedCategory === 'clothing') {
@@ -68,25 +101,47 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory, onProduc
     } else if (selectedCategory) {
         // Filter by main category (but not babygear or clothing - they need subcategory selection)
         if (selectedCategory !== 'babygear' && selectedCategory !== 'clothing') {
-            // Map category names for filtering
+            // Get Firebase category document IDs that match the selected normalized category
+            const matchingCategoryIds = getCategoryIdsForNormalized(selectedCategory);
+            
+            // Also include name-based matching for backward compatibility
             const categoryFilterMap = {
                 'sleepwear': ['sleepwear', 'sleep wear', 'nightwear', 'night wear'],
-                'feeding': ['feeding', 'feeding products', 'food product', 'food products']
+                'feeding': ['feeding', 'feeding products', 'food product', 'food products'],
+                'onesies': ['onesies'],
+                'toys': ['toys']
             };
             
-            const categoriesToMatch = categoryFilterMap[selectedCategory] || [selectedCategory];
+            const categoryNamesToMatch = categoryFilterMap[selectedCategory] || [selectedCategory];
             
             filteredProducts = products.filter(product => {
+                // Match by Firebase document ID (primary method)
+                const matchesById = matchingCategoryIds.includes(product.category);
+                
+                // Match by category name (fallback for old data)
                 const productCategory = product.category?.toLowerCase().replace(/\s+/g, '') || '';
                 const productCategoryOriginal = product.category?.toLowerCase() || '';
                 const normalizedSelected = selectedCategory.toLowerCase().replace(/\s+/g, '');
                 
-                return categoriesToMatch.some(cat => 
+                // Also check if product.category is a Firebase ID that we need to look up
+                const productCategoryDoc = categories.find(cat => cat.id === product.category);
+                const productCategoryNormalized = productCategoryDoc ? normalizeCategoryId(productCategoryDoc.id, productCategoryDoc.name) : '';
+                const matchesByLookup = productCategoryNormalized === selectedCategory;
+                
+                const matchesByName = categoryNamesToMatch.some(cat => 
                     productCategory === cat.toLowerCase().replace(/\s+/g, '') ||
                     productCategoryOriginal === cat.toLowerCase() ||
                     productCategory === normalizedSelected ||
                     product.category === selectedCategory
                 );
+                
+                // #region agent log
+                if (products.indexOf(product) < 3) {
+                    fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:95',message:'Filtering product by category',data:{productName:product.name,productCategory:product.category,selectedCategory,matchingCategoryIds,matchesById,matchesByLookup,matchesByName,productCategoryDocName:productCategoryDoc?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'E'})}).catch(()=>{});
+                }
+                // #endregion
+                
+                return matchesById || matchesByLookup || matchesByName;
             });
         } else {
             filteredProducts = []; // Show nothing until subcategory is selected

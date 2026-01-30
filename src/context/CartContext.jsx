@@ -13,6 +13,7 @@ export const useCart = () => {
 export const CartProvider = ({ children }) => {
     const [cartItems, setCartItems] = useState([]);
     const [isCartOpen, setIsCartOpen] = useState(false);
+    const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
     // Add item to cart
     const addToCart = (product) => {
@@ -65,17 +66,35 @@ export const CartProvider = ({ children }) => {
         return cartItems.reduce((count, item) => count + item.quantity, 0);
     };
 
-    // Generate WhatsApp message
-    const generateWhatsAppMessage = () => {
+    // Generate WhatsApp message with order details
+    const generateWhatsAppMessage = (transactionRef = '', deliveryAddress = '') => {
         if (cartItems.length === 0) return '';
 
-        let message = "Hello! I'd like to order the following items from Aisha's Shop:\n\n";
+        let message = "Hello! I've completed my payment and would like to confirm my order:\n\n";
+        message += "📦 ORDER DETAILS:\n";
+        message += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
 
-        cartItems.forEach(item => {
-            message += `• ${item.name} - GH₵${item.price.toLocaleString()} x ${item.quantity} = GH₵${(item.price * item.quantity).toLocaleString()}\n`;
+        cartItems.forEach((item, index) => {
+            message += `${index + 1}. ${item.name}\n`;
+            message += `   Price: GH₵${item.price.toLocaleString()}\n`;
+            message += `   Quantity: ${item.quantity}\n`;
+            message += `   Subtotal: GH₵${(item.price * item.quantity).toLocaleString()}\n\n`;
         });
 
-        message += `\nTotal: GH₵${getTotal().toLocaleString()}`;
+        message += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n";
+        message += `💰 TOTAL AMOUNT PAID: GH₵${getTotal().toLocaleString()}\n\n`;
+
+        if (transactionRef) {
+            message += `📝 Transaction Reference: ${transactionRef}\n`;
+        }
+
+        if (deliveryAddress) {
+            message += `📍 Delivery Address:\n${deliveryAddress}\n\n`;
+        }
+
+        message += "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n";
+        message += "Please confirm receipt of payment. I'll attach a screenshot of the payment for faster verification.\n\n";
+        message += "Thank you! 🙏";
 
         return encodeURIComponent(message);
     };
@@ -84,6 +103,8 @@ export const CartProvider = ({ children }) => {
         cartItems,
         isCartOpen,
         setIsCartOpen,
+        isCheckoutOpen,
+        setIsCheckoutOpen,
         addToCart,
         removeFromCart,
         updateQuantity,

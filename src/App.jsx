@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CartProvider } from './context/CartContext';
+import { CartProvider, useCart } from './context/CartContext';
 import { db } from './lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import Header from './components/Header';
@@ -8,6 +8,7 @@ import Categories from './components/Categories';
 import ProductGrid from './components/ProductGrid';
 import ProductModal from './components/ProductModal';
 import Cart from './components/Cart';
+import Checkout from './components/Checkout';
 import Footer from './components/Footer';
 import WhatsAppFloat from './components/WhatsAppFloat';
 import './styles/index.css';
@@ -37,6 +38,8 @@ function Home() {
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [loading, setLoading] = useState(true);
+    
+    const { isCheckoutOpen, setIsCheckoutOpen } = useCart();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -181,11 +184,15 @@ function Home() {
                 selectedCategory={selectedCategory}
                 selectedSubcategory={selectedSubcategory}
                 onProductClick={handleProductClick}
+                categories={categories}
             />
             {selectedProduct && (
                 <ProductModal product={selectedProduct} onClose={closeProductModal} />
             )}
             <Cart />
+            {isCheckoutOpen && (
+                <Checkout onClose={() => setIsCheckoutOpen(false)} />
+            )}
             <Footer onCategoryClick={handleCategoryClick} />
             <WhatsAppFloat />
         </>
