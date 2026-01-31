@@ -138,12 +138,12 @@ export const getSubcategories = (parentCategoryId) => {
             { id: 'pottytrainer', name: 'Potty Trainer', icon: '🚽', firebaseCategoryId: 'pottytrainer' }
         ],
         clothing: [
-            { id: 'boy', name: 'Boy', icon: '👦', firebaseCategoryId: 'clothing' },
-            { id: 'girl', name: 'Girl', icon: '👧', firebaseCategoryId: 'clothing' }
+            { id: 'boy', name: 'Boys', icon: '👦', firebaseCategoryId: 'clothing' },
+            { id: 'girl', name: 'Girsl', icon: '👧', firebaseCategoryId: 'clothing' }
         ],
         sleepwear: [
-            { id: 'boy', name: 'Boy', icon: '👦', firebaseCategoryId: 'sleepwear' },
-            { id: 'girl', name: 'Girl', icon: '👧', firebaseCategoryId: 'sleepwear' }
+            { id: 'boy', name: 'Boys', icon: '👦', firebaseCategoryId: 'sleepwear' },
+            { id: 'girl', name: 'Girls', icon: '👧', firebaseCategoryId: 'sleepwear' }
         ]
     };
     
