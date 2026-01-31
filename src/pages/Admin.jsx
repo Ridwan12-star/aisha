@@ -21,8 +21,10 @@ const Admin = () => {
         price: '',
         category: '',
         description: '',
-        image: '', // Base64 string
-        inStock: true
+        image: '', // Base64 string (main image, first image from array)
+        images: [], // Array of Base64 strings for multiple images
+        inStock: true,
+        subcategory: '' // Store subcategory (boy/girl) for clothing
     });
     
     // Category Form State
@@ -73,11 +75,7 @@ const Admin = () => {
     };
 
     // Helper to resize image
-    const handleImageChange = (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-
-        setIsLoading(true);
+    const processImage = (file, callback) => {
         const reader = new FileReader();
         reader.readAsDataURL(file);
         reader.onload = (event) => {
@@ -94,10 +92,36 @@ const Admin = () => {
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                 const dataUrl = canvas.toDataURL('image/jpeg', 0.7); // Compress to 70% quality
-                setNewProduct(prev => ({ ...prev, image: dataUrl }));
-                setIsLoading(false);
+                callback(dataUrl);
             };
         };
+    };
+
+    // Handle multiple image selection
+    const handleImageChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length === 0) return;
+
+        setIsLoading(true);
+        const processedImages = [];
+        let processedCount = 0;
+
+        files.forEach((file, index) => {
+            processImage(file, (dataUrl) => {
+                processedImages[index] = dataUrl;
+                processedCount++;
+                
+                if (processedCount === files.length) {
+                    // All images processed
+                    setNewProduct(prev => ({
+                        ...prev,
+                        images: processedImages,
+                        image: processedImages[0] || prev.image // First image as main image
+                    }));
+                    setIsLoading(false);
+                }
+            });
+        });
     };
 
     const handleAddProduct = async (e) => {
@@ -122,16 +146,41 @@ const Admin = () => {
         setIsLoading(true);
         try {
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:100',message:'Adding product',data:{productName:newProduct.name,category:newProduct.category,selectedMainCategory,selectedSubcategory},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'C'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:123',message:'Adding product - BEFORE save',data:{productName:newProduct.name,productCategory:newProduct.category,productSubcategory:newProduct.subcategory,selectedMainCategory,selectedSubcategory,productDescription:newProduct.description},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
             // #endregion
             
-            await addDoc(collection(db, 'products'), {
-                ...newProduct,
+            // Create variants from multiple images if available
+            let variants = [];
+            if (newProduct.images && newProduct.images.length > 1) {
+                variants = newProduct.images.map((img, index) => ({
+                    name: `Image ${index + 1}`,
+                    image: img
+                }));
+            }
+
+            const productToSave = {
+                name: newProduct.name,
                 price: Number(newProduct.price),
+                category: newProduct.category,
+                description: newProduct.description,
+                image: newProduct.image || (newProduct.images && newProduct.images[0]) || '',
+                inStock: newProduct.inStock,
+                subcategory: newProduct.subcategory || '',
                 createdAt: new Date(),
-                inStock: newProduct.inStock
-            });
-            setNewProduct({ name: '', price: '', category: '', description: '', image: '', inStock: true });
+                ...(variants.length > 0 && { variants })
+            };
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:145',message:'Adding product - productToSave object',data:{productName:productToSave.name,productCategory:productToSave.category,productSubcategory:productToSave.subcategory,hasVariants:variants.length>0,variantsCount:variants.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
+            
+            await addDoc(collection(db, 'products'), productToSave);
+            
+            // #region agent log
+            fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:138',message:'Product saved successfully',data:{productName:newProduct.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+            // #endregion
+            
+            setNewProduct({ name: '', price: '', category: '', description: '', image: '', images: [], inStock: true, subcategory: '' });
             setSelectedMainCategory('');
             setSelectedSubcategory('');
 
@@ -154,6 +203,10 @@ const Admin = () => {
         setSelectedMainCategory(mainCategoryId);
         setSelectedSubcategory('');
         
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:152',message:'Main category changed',data:{mainCategoryId,previousCategory:newProduct.category,previousSubcategory:newProduct.subcategory},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+        // #endregion
+        
         // For categories without subcategories, set the category directly
         if (mainCategoryId && mainCategoryId !== 'babygear' && mainCategoryId !== 'clothing') {
             // Find the Firebase category document ID that matches the normalized category
@@ -162,13 +215,9 @@ const Admin = () => {
                 return normalized === mainCategoryId;
             });
             
-            // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:120',message:'Main category selected',data:{mainCategoryId,firebaseCategoryId:firebaseCategory?.id,firebaseCategoryName:firebaseCategory?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'C'})}).catch(()=>{});
-            // #endregion
-            
-            setNewProduct({ ...newProduct, category: firebaseCategory?.id || mainCategoryId });
+            setNewProduct({ ...newProduct, category: firebaseCategory?.id || mainCategoryId, subcategory: '' });
         } else {
-            setNewProduct({ ...newProduct, category: '' });
+            setNewProduct({ ...newProduct, category: '', subcategory: '' });
         }
     };
 
@@ -187,15 +236,33 @@ const Admin = () => {
             const catName = cat.name?.toLowerCase() || '';
             const catId = cat.id?.toLowerCase().replace(/\s+/g, '') || '';
             const normalized = normalizeCategoryId(cat.id, cat.name);
+            const targetId = firebaseCategoryId.toLowerCase().replace(/\s+/g, '');
             return normalized === firebaseCategoryId || 
+                   normalized === targetId ||
                    catName.includes(firebaseCategoryId.toLowerCase()) || 
-                   catId === firebaseCategoryId.toLowerCase().replace(/\s+/g, '');
+                   catName.includes(targetId) ||
+                   catId === targetId ||
+                   catId.includes(targetId);
         });
         
-        setNewProduct({ ...newProduct, category: firebaseCategory?.id || firebaseCategoryId });
+        // #region agent log
+        fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:186',message:'Subcategory selected - BEFORE setting product state',data:{subcategoryId,selectedMainCategory,firebaseCategoryId,foundCategoryId:firebaseCategory?.id,foundCategoryName:firebaseCategory?.name,currentProductCategory:newProduct.category,currentProductSubcategory:newProduct.subcategory},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
+        // #endregion
+        
+        // For clothing subcategories (boy/girl), store the subcategory separately
+        const subcategoryToStore = (selectedMainCategory === 'clothing' && (subcategoryId === 'boy' || subcategoryId === 'girl')) ? subcategoryId : '';
+        // Use the found category ID, or try to find a category that matches the main category, or use the firebaseCategoryId as fallback
+        const finalCategoryId = firebaseCategory?.id || 
+                                (selectedMainCategory === 'clothing' ? categories.find(c => {
+                                    const norm = normalizeCategoryId(c.id, c.name);
+                                    return norm === 'clothing';
+                                })?.id : null) ||
+                                firebaseCategoryId;
+        
+        setNewProduct({ ...newProduct, category: finalCategoryId, subcategory: subcategoryToStore });
         
         // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:130',message:'Subcategory selected',data:{subcategoryId,firebaseCategoryId,selectedCategoryId:firebaseCategory?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'C'})}).catch(()=>{});
+        fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:195',message:'Subcategory selected - AFTER setting product state',data:{subcategoryId,subcategoryToStore,productCategory:firebaseCategory?.id || firebaseCategoryId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
         // #endregion
     };
 
@@ -449,19 +516,55 @@ const Admin = () => {
                         {/* Hidden input to store the actual Firebase category ID */}
                         <input type="hidden" value={newProduct.category} />
 
-                        {/* Image Upload Input */}
+                        {/* Image Upload Input - Multiple Images Support */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: 5 }}>
-                            <label style={{ fontSize: '0.9rem' }}>Product Image:</label>
+                            <label style={{ fontSize: '0.9rem' }}>Product Images (Select multiple from camera/gallery):</label>
                             <input
                                 id="fileInput"
                                 type="file"
                                 accept="image/*"
+                                multiple
+                                capture="environment"
                                 onChange={handleImageChange}
                                 required
                                 style={{ padding: 8, background: 'white' }}
                             />
-                            {newProduct.image && (
-                                <img src={newProduct.image} alt="Preview" style={{ width: 100, marginTop: 5, borderRadius: 5 }} />
+                            <small style={{ fontSize: '0.8rem', color: '#666' }}>
+                                You can select multiple images. The first image will be used as the main product image.
+                            </small>
+                            {newProduct.images && newProduct.images.length > 0 && (
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, marginTop: 10 }}>
+                                    {newProduct.images.map((img, index) => (
+                                        <div key={index} style={{ position: 'relative' }}>
+                                            <img 
+                                                src={img} 
+                                                alt={`Preview ${index + 1}`} 
+                                                style={{ 
+                                                    width: 100, 
+                                                    height: 100, 
+                                                    objectFit: 'cover',
+                                                    borderRadius: 5,
+                                                    border: index === 0 ? '3px solid #D4AF37' : '1px solid #ddd'
+                                                }} 
+                                            />
+                                            {index === 0 && (
+                                                <div style={{
+                                                    position: 'absolute',
+                                                    top: 5,
+                                                    left: 5,
+                                                    background: '#D4AF37',
+                                                    color: 'white',
+                                                    padding: '2px 6px',
+                                                    borderRadius: 3,
+                                                    fontSize: '0.7rem',
+                                                    fontWeight: 'bold'
+                                                }}>
+                                                    Main
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
                             )}
                         </div>
 

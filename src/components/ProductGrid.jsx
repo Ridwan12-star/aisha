@@ -4,7 +4,7 @@ import { normalizeCategoryId } from '../utils/categoryUtils';
 
 const ProductGrid = ({ products, selectedCategory, selectedSubcategory, onProductClick, categories = [] }) => {
     // #region agent log
-    fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:5',message:'ProductGrid render',data:{productsCount:products.length,selectedCategory,selectedSubcategory,categoriesCount:categories.length,onProductClickExists:typeof onProductClick==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'run5',hypothesisId:'E'})}).catch(()=>{});
+    fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:5',message:'ProductGrid render',data:{productsCount:products.length,selectedCategory,selectedSubcategory,categoriesCount:categories.length,onProductClickExists:typeof onProductClick==='function'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
     // #endregion
     let filteredProducts = products;
     
@@ -76,24 +76,53 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory, onProduc
                 const productCategoryNormalized = product.category?.toLowerCase().replace(/\s+/g, '') || '';
                 const productName = product.name?.toLowerCase() || '';
                 const productDescription = product.description?.toLowerCase() || '';
+                const productSubcategory = product.subcategory?.toLowerCase() || '';
+                
+                // Check if product.category is a Firebase ID that maps to clothing
+                const productCategoryDoc = categories.find(cat => cat.id === product.category);
+                const productCategoryName = productCategoryDoc?.name?.toLowerCase() || '';
+                const normalizedProductCategory = productCategoryDoc ? normalizeCategoryId(productCategoryDoc.id, productCategoryDoc.name) : '';
                 
                 const isClothingCategory = productCategoryNormalized.includes('clothing') || 
                                           productCategoryNormalized.includes('babyclothes') ||
                                           productCategory.includes('baby clothes') ||
-                                          productCategory.includes('clothing');
+                                          productCategory.includes('clothing') ||
+                                          productCategoryName.includes('clothing') ||
+                                          productCategoryName.includes('baby clothes') ||
+                                          normalizedProductCategory === 'clothing';
+                
+                // #region agent log
+                if (products.indexOf(product) < 5) {
+                    fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:74',message:'Filtering clothing product by subcategory',data:{productName:product.name,productCategory,productSubcategory,selectedSubcategory,isClothingCategory,productCategoryDocName:productCategoryDoc?.name,normalizedProductCategory},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                }
+                // #endregion
                 
                 if (selectedSubcategory === 'boy') {
-                    return isClothingCategory && (
+                    const matches = isClothingCategory && (
+                        productSubcategory === 'boy' ||
                         productCategory.includes('boy') || 
                         productName.includes('boy') ||
                         productDescription.includes('boy')
                     );
+                    // #region agent log
+                    if (products.indexOf(product) < 3 && isClothingCategory) {
+                        fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:95',message:'Boy subcategory match check',data:{productName:product.name,matches,productSubcategory,productCategoryIncludesBoy:productCategory.includes('boy'),productNameIncludesBoy:productName.includes('boy'),productDescriptionIncludesBoy:productDescription.includes('boy')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                    }
+                    // #endregion
+                    return matches;
                 } else if (selectedSubcategory === 'girl') {
-                    return isClothingCategory && (
+                    const matches = isClothingCategory && (
+                        productSubcategory === 'girl' ||
                         productCategory.includes('girl') || 
                         productName.includes('girl') ||
                         productDescription.includes('girl')
                     );
+                    // #region agent log
+                    if (products.indexOf(product) < 3 && isClothingCategory) {
+                        fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:105',message:'Girl subcategory match check',data:{productName:product.name,matches,productSubcategory,productCategoryIncludesGirl:productCategory.includes('girl'),productNameIncludesGirl:productName.includes('girl'),productDescriptionIncludesGirl:productDescription.includes('girl')},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+                    }
+                    // #endregion
+                    return matches;
                 }
                 return false;
             });
