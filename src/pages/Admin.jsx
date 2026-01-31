@@ -130,7 +130,7 @@ const Admin = () => {
             alert('Please select a main category');
             return;
         }
-        if ((selectedMainCategory === 'babygear' || selectedMainCategory === 'clothing') && !selectedSubcategory) {
+        if ((selectedMainCategory === 'babygear' || selectedMainCategory === 'clothing' || selectedMainCategory === 'sleepwear') && !selectedSubcategory) {
             alert('Please select a subcategory');
             return;
         }
@@ -249,8 +249,8 @@ const Admin = () => {
         fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'Admin.jsx:186',message:'Subcategory selected - BEFORE setting product state',data:{subcategoryId,selectedMainCategory,firebaseCategoryId,foundCategoryId:firebaseCategory?.id,foundCategoryName:firebaseCategory?.name,currentProductCategory:newProduct.category,currentProductSubcategory:newProduct.subcategory},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'A'})}).catch(()=>{});
         // #endregion
         
-        // For clothing subcategories (boy/girl), store the subcategory separately
-        const subcategoryToStore = (selectedMainCategory === 'clothing' && (subcategoryId === 'boy' || subcategoryId === 'girl')) ? subcategoryId : '';
+        // For clothing and sleepwear subcategories (boy/girl), store the subcategory separately
+        const subcategoryToStore = ((selectedMainCategory === 'clothing' || selectedMainCategory === 'sleepwear') && (subcategoryId === 'boy' || subcategoryId === 'girl')) ? subcategoryId : '';
         // Use the found category ID, or try to find a category that matches the main category, or use the firebaseCategoryId as fallback
         const finalCategoryId = firebaseCategory?.id || 
                                 (selectedMainCategory === 'clothing' ? categories.find(c => {
@@ -495,8 +495,8 @@ const Admin = () => {
                             ))}
                         </select>
 
-                        {/* Subcategory Selection (only for Baby Gear and Clothing) */}
-                        {(selectedMainCategory === 'babygear' || selectedMainCategory === 'clothing') && (
+                        {/* Subcategory Selection (only for Baby Gear, Clothing, and Sleepwear) */}
+                        {(selectedMainCategory === 'babygear' || selectedMainCategory === 'clothing' || selectedMainCategory === 'sleepwear') && (
                             <>
                                 <label style={{ fontSize: '0.9rem', fontWeight: 'bold' }}>Subcategory:</label>
                                 <select
