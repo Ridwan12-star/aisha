@@ -50,7 +50,6 @@ const Categories = ({ categories, onCategoryClick, selectedCategory, onSubcatego
                             >
                                 <span className="category-icon">{category.icon}</span>
                                 <h3>{category.displayName || category.name}</h3>
-                                <p>{category.description}</p>
                             </div>
                         ))}
                     </div>
