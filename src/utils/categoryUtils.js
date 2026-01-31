@@ -139,7 +139,7 @@ export const getSubcategories = (parentCategoryId) => {
         ],
         clothing: [
             { id: 'boy', name: 'Boys', icon: '👦', firebaseCategoryId: 'clothing' },
-            { id: 'girl', name: 'Girsl', icon: '👧', firebaseCategoryId: 'clothing' }
+            { id: 'girl', name: 'Girls', icon: '👧', firebaseCategoryId: 'clothing' }
         ],
         sleepwear: [
             { id: 'boy', name: 'Boys', icon: '👦', firebaseCategoryId: 'sleepwear' },
