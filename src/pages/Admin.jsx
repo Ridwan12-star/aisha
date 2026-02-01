@@ -524,7 +524,6 @@ const Admin = () => {
                                 type="file"
                                 accept="image/*"
                                 multiple
-                                capture="environment"
                                 onChange={handleImageChange}
                                 required
                                 style={{ padding: 8, background: 'white' }}
