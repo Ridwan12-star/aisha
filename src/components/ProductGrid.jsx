@@ -1,6 +1,6 @@
 import React from 'react';
 import ProductCard from './ProductCard';
-import { normalizeCategoryId } from '../utils/categoryUtils';
+import { normalizeCategoryId, getSubcategories } from '../utils/categoryUtils';
 
 const ProductGrid = ({ products, selectedCategory, selectedSubcategory, onProductClick, categories = [] }) => {
     // #region agent log
@@ -149,9 +149,58 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory, onProduc
             });
         }
     } else if (selectedCategory) {
-        // Don't show any products when only a category is selected (no subcategory)
-        // Products will only show when a subcategory is selected
-        filteredProducts = [];
+        // Check if this category has subcategories
+        const categorySubcategories = getSubcategories(selectedCategory);
+        const hasSubcategories = categorySubcategories.length > 0;
+        
+        if (hasSubcategories) {
+            // Categories with subcategories (babygear, clothing, sleepwear) require subcategory selection
+            filteredProducts = [];
+        } else {
+            // Categories without subcategories (onesies, toys, feeding) show products directly
+            // Get Firebase category document IDs that match the selected normalized category
+            const matchingCategoryIds = getCategoryIdsForNormalized(selectedCategory);
+            
+            // Also include name-based matching for backward compatibility
+            const categoryFilterMap = {
+                'sleepwear': ['sleepwear', 'sleep wear', 'nightwear', 'night wear'],
+                'feeding': ['feeding', 'feeding products', 'food product', 'food products'],
+                'onesies': ['onesies'],
+                'toys': ['toys']
+            };
+            
+            const categoryNamesToMatch = categoryFilterMap[selectedCategory] || [selectedCategory];
+            
+            filteredProducts = products.filter(product => {
+                // Match by Firebase document ID (primary method)
+                const matchesById = matchingCategoryIds.includes(product.category);
+                
+                // Match by category name (fallback for old data)
+                const productCategory = product.category?.toLowerCase().replace(/\s+/g, '') || '';
+                const productCategoryOriginal = product.category?.toLowerCase() || '';
+                const normalizedSelected = selectedCategory.toLowerCase().replace(/\s+/g, '');
+                
+                // Also check if product.category is a Firebase ID that we need to look up
+                const productCategoryDoc = categories.find(cat => cat.id === product.category);
+                const productCategoryNormalized = productCategoryDoc ? normalizeCategoryId(productCategoryDoc.id, productCategoryDoc.name) : '';
+                const matchesByLookup = productCategoryNormalized === selectedCategory;
+                
+                const matchesByName = categoryNamesToMatch.some(cat => 
+                    productCategory === cat.toLowerCase().replace(/\s+/g, '') ||
+                    productCategoryOriginal === cat.toLowerCase() ||
+                    productCategory === normalizedSelected ||
+                    product.category === selectedCategory
+                );
+                
+                // #region agent log
+                if (products.indexOf(product) < 3) {
+                    fetch('http://127.0.0.1:7242/ingest/801788a4-a8a9-4777-ab8c-d2e805755fb6',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'ProductGrid.jsx:167',message:'Filtering product by category (no subcategories)',data:{productName:product.name,productCategory:product.category,selectedCategory,matchingCategoryIds,matchesById,matchesByLookup,matchesByName,productCategoryDocName:productCategoryDoc?.name},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+                }
+                // #endregion
+                
+                return matchesById || matchesByLookup || matchesByName;
+            });
+        }
     }
 
     const getCategoryDisplayName = () => {
@@ -178,8 +227,13 @@ const ProductGrid = ({ products, selectedCategory, selectedSubcategory, onProduc
         return 'All Products';
     };
 
-    // Don't show products when only a category is selected (no subcategory) - only show for "All Products" or when subcategory is selected
-    const shouldShowProducts = !selectedCategory || selectedSubcategory;
+    // Show products when:
+    // 1. No category is selected (All Products)
+    // 2. A subcategory is selected
+    // 3. A category without subcategories is selected (onesies, toys, feeding)
+    const categorySubcategories = selectedCategory ? getSubcategories(selectedCategory) : [];
+    const hasSubcategories = categorySubcategories.length > 0;
+    const shouldShowProducts = !selectedCategory || selectedSubcategory || !hasSubcategories;
 
     return (
         <section className="products-section" id="products">
