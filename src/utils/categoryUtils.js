@@ -74,47 +74,59 @@ export const getMainCategories = (categories) => {
     // Group categories by normalized ID to avoid duplicates
     const categoryMap = new Map();
     
-    categories
-        .filter(cat => !shouldHideCategory(cat))
-        .forEach(cat => {
-            const normalizedId = normalizeCategoryId(cat.id, cat.name);
-            
-            // Only include if it's a main category
-            if (MAIN_CATEGORIES.includes(normalizedId)) {
-                // If we already have this normalized category, prefer the one with the matching name
-                if (!categoryMap.has(normalizedId)) {
-                    const displayName = displayNameMap[normalizedId] || cat.name;
+    // First, get all categories that don't have a parentCategory (main categories)
+    const mainCategories = categories.filter(cat => !cat.parentCategory && !shouldHideCategory(cat));
+    
+    mainCategories.forEach(cat => {
+        const normalizedId = normalizeCategoryId(cat.id, cat.name);
+        
+        // If it's a known main category, use the display name mapping
+        if (MAIN_CATEGORIES.includes(normalizedId)) {
+            const displayName = displayNameMap[normalizedId] || cat.name;
+            if (!categoryMap.has(normalizedId)) {
+                categoryMap.set(normalizedId, {
+                    ...cat,
+                    normalizedId,
+                    displayName,
+                    isMainCategory: true
+                });
+            } else {
+                // If current category name matches the display name better, use it
+                const existing = categoryMap.get(normalizedId);
+                const displayName = displayNameMap[normalizedId] || cat.name;
+                if (cat.name?.toLowerCase() === displayName.toLowerCase()) {
                     categoryMap.set(normalizedId, {
                         ...cat,
                         normalizedId,
                         displayName,
                         isMainCategory: true
                     });
-                } else {
-                    // If current category name matches the display name better, use it
-                    const existing = categoryMap.get(normalizedId);
-                    const displayName = displayNameMap[normalizedId] || cat.name;
-                    if (cat.name?.toLowerCase() === displayName.toLowerCase()) {
-                        categoryMap.set(normalizedId, {
-                            ...cat,
-                            normalizedId,
-                            displayName,
-                            isMainCategory: true
-                        });
-                    }
                 }
             }
-        });
+        } else {
+            // For new categories not in MAIN_CATEGORIES, use their own name and ID
+            // Use normalizedId as a unique key, but prefer the category's own ID if it's unique
+            const key = cat.id || normalizedId;
+            if (!categoryMap.has(key)) {
+                categoryMap.set(key, {
+                    ...cat,
+                    normalizedId: normalizedId,
+                    displayName: cat.name,
+                    isMainCategory: true
+                });
+            }
+        }
+    });
     
-    // Convert map to array and ensure all main categories are represented
-    const result = Array.from(categoryMap.values());
+    // Convert map to array
+    let result = Array.from(categoryMap.values());
     
-    // If "Baby Gear" (babygear) is missing but we have "Walkers", create it
+    // If "Baby Gear" (babygear) is missing but we have "Walkers", create it (backward compatibility)
     const hasBabyGear = result.some(cat => cat.normalizedId === 'babygear');
     if (!hasBabyGear) {
         const walkersCategory = categories.find(cat => {
             const normalized = normalizeCategoryId(cat.id, cat.name);
-            return normalized === 'babygear';
+            return normalized === 'babygear' && !cat.parentCategory;
         });
         if (walkersCategory) {
             result.push({
@@ -129,24 +141,55 @@ export const getMainCategories = (categories) => {
     return result;
 };
 
-// Get subcategories for a parent category
-export const getSubcategories = (parentCategoryId) => {
-    const subcategories = {
-        babygear: [
-            { id: 'babywalker', name: 'Baby Walker', icon: '🚼', firebaseCategoryId: 'walkers' },
-            { id: 'highchair', name: 'High Chair', icon: '🪑', firebaseCategoryId: 'highchair' },
-            { id: 'pottytrainer', name: 'Potty Trainer', icon: '🚽', firebaseCategoryId: 'pottytrainer' }
-        ],
-        clothing: [
-            { id: 'boy', name: 'Boys', icon: '👦', firebaseCategoryId: 'clothing' },
-            { id: 'girl', name: 'Girls', icon: '👧', firebaseCategoryId: 'clothing' }
-        ],
-        sleepwear: [
-            { id: 'boy', name: 'Boys', icon: '👦', firebaseCategoryId: 'sleepwear' },
-            { id: 'girl', name: 'Girls', icon: '👧', firebaseCategoryId: 'sleepwear' }
-        ]
-    };
+// Get subcategories for a parent category (dynamically from Firebase categories)
+export const getSubcategories = (parentCategoryId, categories = []) => {
+    if (!parentCategoryId || !categories || categories.length === 0) {
+        return [];
+    }
     
-    const normalized = parentCategoryId?.toLowerCase().replace(/\s+/g, '') || '';
-    return subcategories[normalized] || [];
+    // First, try to find parent category by Firebase ID directly (for new categories)
+    let parentCategory = categories.find(cat => cat.id === parentCategoryId && !cat.parentCategory);
+    
+    // If not found, try normalized ID matching (for known categories)
+    if (!parentCategory) {
+        const normalized = parentCategoryId?.toLowerCase().replace(/\s+/g, '') || '';
+        parentCategory = categories.find(cat => {
+            const catNormalized = normalizeCategoryId(cat.id, cat.name);
+            return catNormalized === normalized && !cat.parentCategory;
+        });
+    }
+    
+    if (!parentCategory) {
+        // Fallback to hardcoded subcategories for backward compatibility
+        const normalized = parentCategoryId?.toLowerCase().replace(/\s+/g, '') || '';
+        const hardcodedSubcategories = {
+            babygear: [
+                { id: 'babywalker', name: 'Baby Walker', icon: '🚼', firebaseCategoryId: 'walkers' },
+                { id: 'highchair', name: 'High Chair', icon: '🪑', firebaseCategoryId: 'highchair' },
+                { id: 'pottytrainer', name: 'Potty Trainer', icon: '🚽', firebaseCategoryId: 'pottytrainer' }
+            ],
+            clothing: [
+                { id: 'boy', name: 'Boys', icon: '👦', firebaseCategoryId: 'clothing' },
+                { id: 'girl', name: 'Girls', icon: '👧', firebaseCategoryId: 'clothing' }
+            ],
+            sleepwear: [
+                { id: 'boy', name: 'Boys', icon: '👦', firebaseCategoryId: 'sleepwear' },
+                { id: 'girl', name: 'Girls', icon: '👧', firebaseCategoryId: 'sleepwear' }
+            ]
+        };
+        return hardcodedSubcategories[normalized] || [];
+    }
+    
+    // Get all subcategories that have this parent category as their parentCategory
+    const subcategories = categories
+        .filter(cat => cat.parentCategory === parentCategory.id)
+        .map(cat => ({
+            id: cat.id,
+            name: cat.name,
+            icon: cat.icon || '📦',
+            firebaseCategoryId: cat.id, // Use the Firebase category ID
+            parentCategoryId: cat.parentCategory
+        }));
+    
+    return subcategories;
 };

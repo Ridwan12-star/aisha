@@ -4,7 +4,7 @@ import { getMainCategories, getSubcategories } from '../utils/categoryUtils';
 const Categories = ({ categories, onCategoryClick, selectedCategory, onSubcategoryClick, selectedSubcategory }) => {
     // Normalize category ID for comparison
     const normalizedSelectedCategory = selectedCategory?.toLowerCase().replace(/\s+/g, '');
-    const subcategories = getSubcategories(selectedCategory);
+    const subcategories = getSubcategories(selectedCategory, categories);
     const showSubcategories = normalizedSelectedCategory && subcategories.length > 0;
 
     // Process categories - filter out subcategories and only show main categories
@@ -34,7 +34,7 @@ const Categories = ({ categories, onCategoryClick, selectedCategory, onSubcatego
                                     className={`category-card ${selectedSubcategory === subcategory.id ? 'active' : ''}`}
                                     onClick={() => onSubcategoryClick(subcategory.id)}
                                 >
-                                    <span className="category-icon">{subcategory.icon}</span>
+                                    <span className="category-icon">{subcategory.icon || '📦'}</span>
                                     <h3>{subcategory.name}</h3>
                                 </div>
                             ))}
@@ -42,16 +42,23 @@ const Categories = ({ categories, onCategoryClick, selectedCategory, onSubcatego
                     </div>
                 ) : (
                     <div className="categories-grid">
-                        {processedCategories.map(category => (
-                            <div
-                                key={category.id}
-                                className="category-card"
-                                onClick={() => onCategoryClick(category.normalizedId || category.id)}
-                            >
-                                <span className="category-icon">{category.icon}</span>
-                                <h3>{category.displayName || category.name}</h3>
-                            </div>
-                        ))}
+                        {processedCategories.map(category => {
+                            // For categories that are in MAIN_CATEGORIES, use normalizedId
+                            // For new categories, use the actual category ID
+                            const categoryIdToUse = category.normalizedId && category.isMainCategory 
+                                ? category.normalizedId 
+                                : category.id;
+                            return (
+                                <div
+                                    key={category.id}
+                                    className="category-card"
+                                    onClick={() => onCategoryClick(categoryIdToUse)}
+                                >
+                                    <span className="category-icon">{category.icon}</span>
+                                    <h3>{category.displayName || category.name}</h3>
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </div>

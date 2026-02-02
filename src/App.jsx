@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { CartProvider, useCart } from './context/CartContext';
 import { db } from './lib/firebase';
 import { collection, getDocs } from 'firebase/firestore';
+import { normalizeCategoryId } from './utils/categoryUtils';
 import Header from './components/Header';
 import Hero from './components/Hero';
 import Categories from './components/Categories';
@@ -88,40 +89,55 @@ function Home() {
             return;
         }
 
-        // Normalize category IDs for subcategory handling
-        const normalizedId = categoryId.toLowerCase().replace(/\s+/g, '');
+        // First, try to find the category by Firebase ID (for new categories)
+        let categoryDoc = categories.find(cat => cat.id === categoryId && !cat.parentCategory);
         
-        // Map old category names to new normalized IDs
-        const categoryMapping = {
-            'walker': 'babygear',
-            'walkers': 'babygear',
-            'babyclothes': 'clothing',
-            'baby clothes': 'clothing',
-            'nightwear': 'sleepwear',
-            'night wear': 'sleepwear',
-            'foodproduct': 'feeding',
-            'food product': 'feeding',
-            'food products': 'feeding'
-        };
-        
-        const finalNormalizedId = categoryMapping[normalizedId] || categoryMapping[categoryId.toLowerCase()] || normalizedId;
-        
-        // #region agent log
-        fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:85',message:'After normalization',data:{categoryId,normalizedId,finalNormalizedId},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-        // #endregion
-        
-        // Check if category has subcategories
-        if (finalNormalizedId === 'babygear' || finalNormalizedId === 'clothing') {
-            setSelectedCategory(finalNormalizedId);
+        // If not found, try normalized ID matching (for known categories)
+        if (!categoryDoc) {
+            const normalizedId = categoryId.toLowerCase().replace(/\s+/g, '');
+            
+            // Map old category names to new normalized IDs
+            const categoryMapping = {
+                'walker': 'babygear',
+                'walkers': 'babygear',
+                'babyclothes': 'clothing',
+                'baby clothes': 'clothing',
+                'nightwear': 'sleepwear',
+                'night wear': 'sleepwear',
+                'foodproduct': 'feeding',
+                'food product': 'feeding',
+                'food products': 'feeding'
+            };
+            
+            const finalNormalizedId = categoryMapping[normalizedId] || categoryMapping[categoryId.toLowerCase()] || normalizedId;
+            
+            categoryDoc = categories.find(cat => {
+                const normalized = normalizeCategoryId(cat.id, cat.name);
+                return normalized === finalNormalizedId && !cat.parentCategory;
+            });
+            
+            // Use normalized ID for known categories, or Firebase ID for new categories
+            const categoryIdToUse = categoryDoc ? finalNormalizedId : categoryId;
+            
+            // Check if category has subcategories (dynamic check)
+            const hasSubcategories = categoryDoc && categories.some(cat => cat.parentCategory === categoryDoc.id);
+            
+            setSelectedCategory(categoryIdToUse);
             setSelectedSubcategory(null);
+            
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:99',message:'Subcategory category selected',data:{finalNormalizedId,originalCategoryId:categoryId},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:99',message:'Category selected',data:{categoryIdToUse,originalCategoryId:categoryId,hasSubcategories},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
             // #endregion
         } else {
-            setSelectedCategory(finalNormalizedId);
+            // New category found by Firebase ID
+            const hasSubcategories = categories.some(cat => cat.parentCategory === categoryDoc.id);
+            
+            // For new categories, use the Firebase ID directly
+            setSelectedCategory(categoryDoc.id);
             setSelectedSubcategory(null);
+            
             // #region agent log
-            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:103',message:'Regular category selected',data:{finalNormalizedId,originalCategoryId:categoryId},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+            fetch('http://127.0.0.1:7243/ingest/98eed7ba-aa2e-4edd-ad9c-fb8e5845045f',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'App.jsx:99',message:'New category selected',data:{categoryId:categoryDoc.id,hasSubcategories},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
             // #endregion
         }
 
